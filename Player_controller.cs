@@ -6,8 +6,16 @@ public class Player_controller : MonoBehaviour
 {
     [SerializeField]//이걸 선언하면 private가 보이지 않으면서도(보호되면서) 값을 수정할 수 있게 된다.
     private float walkSpeed;
+
+    [SerializeField]
+    private float runSpeed;
+    private float applySpeed;//이 변수에 walkspeed 혹은 runspeed를 넣어서 캐릭터의 속도를 결정한다.
+
     [SerializeField]
     private float lookSensitivity;
+
+    private bool isRun = false;// 뛰고있는지 안 뛰고 있는지 check
+
     [SerializeField]
     private float cameraRotationLimit;//고개가 과하게 젖혀지지 않도록 조절함.
     private float currentCameraRotationX = 0f;//정면을 바라보도록 초기화함.
@@ -22,15 +30,42 @@ public class Player_controller : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        myRigid = GetComponent<Rigidbody>(); 
+        myRigid = GetComponent<Rigidbody>();
+        applySpeed = walkSpeed;
     }
 
     // Update is called once per frame
     void Update()
     {
+        TryRun();
         move();
         CameraRotation();
         CharacterRotation();
+    }
+
+    private void TryRun()
+    {
+        if(Input.GetKey(KeyCode.LeftShift))
+        {
+            Running();
+        }
+        if(Input.GetKeyUp(KeyCode.LeftShift))
+        {
+            RunningCancel();
+        }
+                     
+    }
+
+    private void Running()
+    {
+        isRun = true;
+        applySpeed = runSpeed;
+    }
+
+    private void RunningCancel()
+    {
+        isRun = false;
+        applySpeed = walkSpeed;
     }
 
     private void move()
@@ -41,7 +76,7 @@ public class Player_controller : MonoBehaviour
 
         Vector3 _moveHorizontal = transform.right * _moveDirX;//기본값 (1,0,0)
         Vector3 _moveVertiacal = transform.forward * _moveDirZ;//기본값 (0,0,1)
-        Vector3 _velocity = ((_moveHorizontal + _moveVertiacal).normalized * walkSpeed);//normalized를 해줌으로써 두 값을 더한 값이 2가 아닌 1이 된다. 유니티에서 권장하는 방식임.
+        Vector3 _velocity = ((_moveHorizontal + _moveVertiacal).normalized * applySpeed);//normalized를 해줌으로써 두 값을 더한 값이 2가 아닌 1이 된다. 유니티에서 권장하는 방식임.
 
         myRigid.MovePosition(transform.position + _velocity * Time.deltaTime);//델타 타임 == 순간이동하지 않도록 선형적으로 움직이게 해줌. deltatime은 약 0.016초임.
 
